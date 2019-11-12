@@ -1,19 +1,18 @@
 package com.example.projecttest;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
 import android.os.Bundle;
 import android.view.View;
-import android.widget.AdapterView;
-import android.widget.ListView;
-import android.widget.Toast;
 
 import java.util.Arrays;
 import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
-    ListView mListView;
+    RecyclerView mRecyclerView;
     TestAdapter mAdapter;
     String[] mData;
     List<String> mList;
@@ -23,17 +22,27 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        mListView = findViewById(R.id.listview);
+        mRecyclerView = findViewById(R.id.recyclerview);
         mData = getResources().getStringArray(R.array.array);
         mList = Arrays.asList(mData);
         mAdapter = new TestAdapter(this, mList);
-        mListView.setAdapter(mAdapter);
+        mRecyclerView.setAdapter(mAdapter);
+//        mRecyclerView.setLayoutManager(new LinearLayoutManager(this));
 
-        mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        final RecyclerViewFastScroller fastScroller = findViewById(R.id.fastscroller);
+        mRecyclerView.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false) {
             @Override
-            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-                Toast.makeText(MainActivity.this, adapterView.getItemIdAtPosition(i)+"", Toast.LENGTH_SHORT).show();
+            public void onLayoutCompleted(final RecyclerView.State state) {
+                super.onLayoutCompleted(state);
+                final int firstVisibleItemPosition = findFirstVisibleItemPosition();
+                final int lastVisibleItemPosition = findLastVisibleItemPosition();
+                int itemsShown = lastVisibleItemPosition - firstVisibleItemPosition + 1;
+                //if all items are shown, hide the fast-scroller
+                fastScroller.setVisibility(mAdapter.getItemCount() > itemsShown ? View.VISIBLE : View.GONE);
             }
         });
+        fastScroller.setRecyclerView(mRecyclerView);
+        fastScroller.setViewsToUse(R.layout.recycler_view_fast_scroller__fast_scroller, R.id.fastscroller_bubble, R.id.fastscroller_handle);
+
     }
 }
